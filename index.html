@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Juego: Aprende los Números</title>
+  <style>
+    :root{
+      --bg1:#ff5aa5;
+      --bg2:#00d4ff;
+      --bg3:#7c5cff;
+      --card:#ffffff;
+      --ink:#1d1d1f;
+      --ok:#23c55e;
+      --bad:#ff3b30;
+      --shadow: 0 18px 45px rgba(0,0,0,.18);
+      --radius: 22px;
+      --btnShadow: 0 12px 24px rgba(0,0,0,.16);
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color:var(--ink);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:
+        radial-gradient(1200px 700px at 10% 10%, rgba(255,255,255,.35), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,.28), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      background-size: 100% 100%;
+    }
+
+    .wrap{
+      width:min(980px, 100%);
+      display:grid;
+      gap:16px;
+      grid-template-columns: 1.2fr .8fr;
+    }
+    @media (max-width: 900px){
+      .wrap{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: rgba(255,255,255,.92);
+      border: 2px solid rgba(255,255,255,.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:18px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-80px -80px auto auto;
+      width:220px; height:220px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,90,165,.35), rgba(0,0,0,0) 60%);
+      transform: rotate(18deg);
+      pointer-events:none;
+    }
+
+    h1{
+      margin:0 0 6px 0;
+      font-size: clamp(22px, 3vw, 30px);
+      line-height:1.1;
+    }
+    .subtitle{
+      margin:0 0 14px 0;
+      opacity:.85;
+      font-size: 14px;
+    }
+
+    .bigNumber{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius: 18px;
+      border: 3px dashed rgba(0,0,0,.12);
+      background: linear-gradient(135deg, rgba(255,90,165,.18), rgba(0,212,255,.18));
+      height: 240px;
+      user-select:none;
+      position:relative;
+    }
+    .bigNumber span{
+      font-size: clamp(84px, 10vw, 140px);
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-shadow: 0 10px 24px rgba(0,0,0,.15);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:12px;
+    }
+
+    .inputBox{
+      flex:1;
+      min-width: 220px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    input{
+      width:100%;
+      padding:14px 14px;
+      font-size: 18px;
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,.14);
+      outline:none;
+      background:#fff;
+    }
+    input:focus{
+      border-color: rgba(124,92,255,.55);
+      box-shadow: 0 0 0 4px rgba(124,92,255,.15);
+    }
+
+    button{
+      border:0;
+      padding:12px 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      cursor:pointer;
+      color:#111;
+      background: #fff;
+      box-shadow: var(--btnShadow);
+      transition: transform .08s ease, filter .08s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+    }
+    button:active{ transform: translateY(1px) scale(.99); }
+    .btnPrimary{
+      color:#fff;
+      background: linear-gradient(135deg, #ff5aa5, #7c5cff);
+    }
+    .btnOk{ background: linear-gradient(135deg, #22c55e, #15a34a); color:#fff; }
+    .btnWarn{ background: linear-gradient(135deg, #ff7a00, #ff3b30); color:#fff; }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:12px;
+    }
+    .chip{
+      padding:8px 10px;
+      border-radius: 999px;
+      border: 2px solid rgba(0,0,0,.10);
+      background: rgba(255,255,255,.8);
+      cursor:pointer;
+      font-weight: 800;
+      user-select:none;
+      transition: transform .08s ease;
+    }
+    .chip:active{ transform: scale(.98); }
+
+    .msg{
+      margin-top:12px;
+      padding:12px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.06);
+      border: 2px solid rgba(0,0,0,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight:800;
+      min-height: 52px;
+    }
+    .msg.good{ background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.25); }
+    .msg.bad{ background: rgba(255,59,48,.14); border-color: rgba(255,59,48,.25); }
+
+    .score{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      font-size: 14px;
+      opacity:.95;
+    }
+    .badge{
+      padding:8px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.06);
+      border: 2px solid rgba(0,0,0,.08);
+      font-weight: 900;
+    }
+
+    .side h2{
+      margin:0 0 8px 0;
+      font-size: 18px;
+    }
+    .side p{
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      opacity:.85;
+      line-height:1.35;
+    }
+    .miniGrid{
+      display:grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+    .numBtn{
+      aspect-ratio: 1/1;
+      border-radius: 18px;
+      border: 2px solid rgba(0,0,0,.12);
+      background: linear-gradient(135deg, rgba(0,212,255,.18), rgba(255,90,165,.18));
+      font-weight: 1000;
+      font-size: 18px;
+      cursor:pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.10);
+      transition: transform .08s ease, filter .08s ease;
+    }
+    .numBtn:active{ transform: scale(.98); }
+
+    .footer{
+      margin-top:14px;
+      font-size: 12px;
+      opacity: .7;
+      text-align:center;
+    }
+    .firma{
+      margin-top: 10px;
+      font-size: 12px;
+      opacity: .7;
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- JUEGO PRINCIPAL -->
+    <section class="card">
+      <h1>🎨 Aprende los Números</h1>
+      <p class="subtitle">Mira el número, escríbelo y gana estrellas ⭐</p>
+
+      <div class="bigNumber" aria-label="Número a adivinar">
+        <span id="targetNumber">5</span>
+      </div>
+
+      <div class="row">
+        <div class="inputBox">
+          <input id="answer" inputmode="numeric" autocomplete="off" placeholder="Escribe el número aquí..." maxlength="2" />
+          <button class="btnPrimary" id="checkBtn">✅ Revisar</button>
+        </div>
+        <div class="inputBox" style="flex:0; min-width:auto;">
+          <button id="sayBtn" title="Escuchar el número">🔊 Escuchar</button>
+          <button class="btnWarn" id="newBtn" title="Cambiar número">🎲 Otro</button>
+        </div>
+      </div>
+
+      <div id="message" class="msg" role="status" aria-live="polite">
+        <span>Tip: también puedes presionar <b>Enter</b> para revisar.</span>
+        <span>✨</span>
+      </div>
+
+      <div class="score">
+        <div class="badge">⭐ Estrellas: <span id="stars">0</span></div>
+        <div class="badge">✅ Aciertos: <span id="hits">0</span></div>
+        <div class="badge">❌ Intentos: <span id="tries">0</span></div>
+        <button id="resetBtn">🔄 Reiniciar</button>
+      </div>
+
+      <div class="chips" aria-label="Dificultad">
+        <span class="chip" data-max="10">Nivel 1 (0–10)</span>
+        <span class="chip" data-max="20">Nivel 2 (0–20)</span>
+        <span class="chip" data-max="50">Nivel 3 (0–50)</span>
+      </div>
+
+      <div class="firma">APP creada por Alvaro Ariza</div>
+    </section>
+
+    <!-- PANEL LATERAL -->
+    <aside class="card side">
+      <h2>🧩 Mini-juego: Selecciona el número</h2>
+      <p>Haz clic en el número correcto que ves en grande. ¡Entrena la vista!</p>
+
+      <div class="miniGrid" id="grid"></div>
+
+      <div class="footer">
+        Funciona offline en tu PC. Si quieres publicarlo, súbelo a GitHub Pages o a otra plataforma.
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // ====== Estado ======
+    let maxNumber = 10;
+    let target = 5;
+    let stars = 0;
+    let hits = 0;
+    let tries = 0;
+
+    const elTarget = document.getElementById("targetNumber");
+    const elAnswer = document.getElementById("answer");
+    const elMessage = document.getElementById("message");
+    const elStars = document.getElementById("stars");
+    const elHits = document.getElementById("hits");
+    const elTries = document.getElementById("tries");
+    const elGrid = document.getElementById("grid");
+
+    // ====== Utilidades ======
+    function randInt(min, max){
+      // inclusivo
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function setTarget(n){
+      target = n;
+      elTarget.textContent = String(target);
+      elAnswer.value = "";
+      elAnswer.focus();
+      setMessage("Escribe el número que ves 👀", "neutral");
+      refreshGrid();
+    }
+
+    function setMessage(text, type){
+      elMessage.classList.remove("good", "bad");
+      if (type === "good") elMessage.classList.add("good");
+      if (type === "bad") elMessage.classList.add("bad");
+      elMessage.innerHTML = `<span>${text}</span><span>${type==="good"?"⭐":"✨"}</span>`;
+    }
+
+    function updateScore(){
+      elStars.textContent = String(stars);
+      elHits.textContent = String(hits);
+      elTries.textContent = String(tries);
+    }
+
+    function normalizeInput(v){
+      // Mantener solo dígitos
+      const onlyDigits = (v || "").replace(/[^\d]/g, "");
+      return onlyDigits;
+    }
+
+    // ====== Juego: escribir ======
+    function checkAnswer(){
+      const raw = normalizeInput(elAnswer.value);
+      elAnswer.value = raw;
+
+      if (raw === ""){
+        setMessage("Escribe un número 😊", "bad");
+        return;
+      }
+
+      const guess = Number(raw);
+      tries++;
+
+      if (guess === target){
+        hits++;
+        stars += 1;
+        setMessage(`¡Correcto! 🎉 Escribiste ${guess}.`, "good");
+        popConfetti();
+        setTimeout(() => setTarget(randInt(0, maxNumber)), 700);
+      } else {
+        setMessage(`Ups 😅 Tú escribiste ${guess}. Intenta otra vez.`, "bad");
+      }
+      updateScore();
+    }
+
+    // ====== Voz (opcional) ======
+    function sayNumber(){
+      const synth = window.speechSynthesis;
+      if (!synth){
+        setMessage("Tu navegador no soporta voz 🔇", "bad");
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(String(target));
+      u.lang = "es-ES";
+      u.rate = 0.95;
+      synth.cancel();
+      synth.speak(u);
+      setMessage("Escucha y escribe 👂✍️", "neutral");
+    }
+
+    // ====== Mini-juego: seleccionar ======
+    function refreshGrid(){
+      elGrid.innerHTML = "";
+      const set = new Set();
+      set.add(target);
+
+      while (set.size < 10){
+        set.add(randInt(0, maxNumber));
+      }
+
+      const nums = Array.from(set).sort(() => Math.random() - 0.5);
+
+      nums.forEach(n => {
+        const b = document.createElement("button");
+        b.className = "numBtn";
+        b.textContent = String(n);
+        b.addEventListener("click", () => {
+          if (n === target){
+            stars += 1;
+            hits += 1;
+            tries += 1;
+            updateScore();
+            setMessage("¡Bien! ✅ Lo encontraste.", "good");
+            popConfetti();
+            setTimeout(() => setTarget(randInt(0, maxNumber)), 600);
+          } else {
+            tries += 1;
+            updateScore();
+            setMessage("Ese no 😄 ¡Busca el correcto!", "bad");
+          }
+        });
+        elGrid.appendChild(b);
+      });
+    }
+
+    // ====== Confetti simple ======
+    function popConfetti(){
+      const burst = document.createElement("div");
+      burst.style.position = "fixed";
+      burst.style.left = "50%";
+      burst.style.top = "35%";
+      burst.style.transform = "translate(-50%, -50%)";
+      burst.style.pointerEvents = "none";
+      burst.style.zIndex = 9999;
+
+      for (let i=0;i<18;i++){
+        const p = document.createElement("div");
+        p.style.position = "absolute";
+        p.style.width = "10px";
+        p.style.height = "10px";
+        p.style.borderRadius = "3px";
+        // colores random
+        const colors = ["#ff5aa5","#00d4ff","#7c5cff","#22c55e","#ffd60a","#ff7a00"];
+        p.style.background = colors[randInt(0, colors.length-1)];
+        const angle = (Math.PI * 2) * (i / 18);
+        const radius = randInt(40, 110);
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        p.animate([
+          { transform:`translate(0,0) rotate(0deg)`, opacity:1 },
+          { transform:`translate(${x}px, ${y}px) rotate(260deg)`, opacity:0 }
+        ], { duration: 520, easing:"cubic-bezier(.2,.9,.2,1)" });
+        burst.appendChild(p);
+      }
+
+      document.body.appendChild(burst);
+      setTimeout(() => burst.remove(), 600);
+    }
+
+    // ====== Eventos UI ======
+    document.getElementById("checkBtn").addEventListener("click", checkAnswer);
+    document.getElementById("newBtn").addEventListener("click", () => setTarget(randInt(0, maxNumber)));
+    document.getElementById("sayBtn").addEventListener("click", sayNumber);
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      stars = 0; hits = 0; tries = 0;
+      updateScore();
+      setTarget(randInt(0, maxNumber));
+    });
+
+    // Enter para revisar
+    elAnswer.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") checkAnswer();
+    });
+
+    // limpiar input a dígitos mientras escribe
+    elAnswer.addEventListener("input", () => {
+      elAnswer.value = normalizeInput(elAnswer.value);
+    });
+
+    // Cambiar dificultad
+    document.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        maxNumber = Number(chip.dataset.max);
+        setMessage(`Nivel cambiado: 0–${maxNumber} 🎯`, "neutral");
+        setTarget(randInt(0, maxNumber));
+      });
+    });
+
+    // Init
+    updateScore();
+    setTarget(randInt(0, maxNumber));
+  </script>
+</body>
+</html>
