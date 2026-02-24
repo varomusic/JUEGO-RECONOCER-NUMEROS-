@@ -143,26 +143,7 @@
       color:#fff;
       background: linear-gradient(135deg, #ff5aa5, #7c5cff);
     }
-    .btnOk{ background: linear-gradient(135deg, #22c55e, #15a34a); color:#fff; }
     .btnWarn{ background: linear-gradient(135deg, #ff7a00, #ff3b30); color:#fff; }
-
-    .chips{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:12px;
-    }
-    .chip{
-      padding:8px 10px;
-      border-radius: 999px;
-      border: 2px solid rgba(0,0,0,.10);
-      background: rgba(255,255,255,.8);
-      cursor:pointer;
-      font-weight: 800;
-      user-select:none;
-      transition: transform .08s ease;
-    }
-    .chip:active{ transform: scale(.98); }
 
     .msg{
       margin-top:12px;
@@ -208,7 +189,7 @@
     }
     .miniGrid{
       display:grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap:10px;
       margin-top:10px;
     }
@@ -218,7 +199,7 @@
       border: 2px solid rgba(0,0,0,.12);
       background: linear-gradient(135deg, rgba(0,212,255,.18), rgba(255,90,165,.18));
       font-weight: 1000;
-      font-size: 18px;
+      font-size: 22px;
       cursor:pointer;
       box-shadow: 0 10px 20px rgba(0,0,0,.10);
       transition: transform .08s ease, filter .08s ease;
@@ -237,22 +218,78 @@
       opacity: .7;
       text-align:center;
     }
+
+    /* ===== Modal nombre ===== */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index: 99999;
+    }
+    .modal{
+      width:min(520px, 100%);
+      background: rgba(255,255,255,.95);
+      border: 2px solid rgba(255,255,255,.7);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .modal h2{
+      margin:0 0 6px 0;
+      font-size: 22px;
+    }
+    .modal p{
+      margin:0 0 12px 0;
+      opacity:.8;
+      font-size: 14px;
+      line-height:1.35;
+    }
+    .modalRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .modalRow input{ flex:1; min-width: 220px; }
+    .smallBtn{
+      padding:10px 12px;
+      border-radius: 14px;
+      font-weight: 900;
+    }
   </style>
 </head>
 <body>
+  <!-- Modal para pedir nombre -->
+  <div class="modalOverlay" id="nameOverlay" style="display:none;">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Ingresar nombre">
+      <h2>👧🧒 ¡Hola!</h2>
+      <p>Escribe tu nombre para empezar a jugar con los números del <b>0 al 5</b>.</p>
+      <div class="modalRow">
+        <input id="nameInput" placeholder="Tu nombre..." maxlength="20" autocomplete="off" />
+        <button class="btnPrimary smallBtn" id="startBtn">🚀 Empezar</button>
+        <button class="smallBtn" id="skipBtn" title="Jugar sin nombre">Saltar</button>
+      </div>
+      <p class="hint" style="margin-top:10px;">Tip: si cierras y vuelves a abrir, recordaremos tu nombre.</p>
+    </div>
+  </div>
+
   <div class="wrap">
     <!-- JUEGO PRINCIPAL -->
     <section class="card">
       <h1>🎨 Aprende los Números</h1>
-      <p class="subtitle">Mira el número, escríbelo y gana estrellas ⭐</p>
+      <p class="subtitle" id="subtitleText">Mira el número, escríbelo y gana estrellas ⭐</p>
 
       <div class="bigNumber" aria-label="Número a adivinar">
-        <span id="targetNumber">5</span>
+        <span id="targetNumber">0</span>
       </div>
 
       <div class="row">
         <div class="inputBox">
-          <input id="answer" inputmode="numeric" autocomplete="off" placeholder="Escribe el número aquí..." maxlength="2" />
+          <input id="answer" inputmode="numeric" autocomplete="off" placeholder="Escribe el número aquí (0 a 5)..." maxlength="1" />
           <button class="btnPrimary" id="checkBtn">✅ Revisar</button>
         </div>
         <div class="inputBox" style="flex:0; min-width:auto;">
@@ -273,35 +310,32 @@
         <button id="resetBtn">🔄 Reiniciar</button>
       </div>
 
-      <div class="chips" aria-label="Dificultad">
-        <span class="chip" data-max="10">Nivel 1 (0–10)</span>
-        <span class="chip" data-max="20">Nivel 2 (0–20)</span>
-        <span class="chip" data-max="50">Nivel 3 (0–50)</span>
-      </div>
-
       <div class="firma">APP creada por Alvaro Ariza</div>
     </section>
 
     <!-- PANEL LATERAL -->
     <aside class="card side">
       <h2>🧩 Mini-juego: Selecciona el número</h2>
-      <p>Haz clic en el número correcto que ves en grande. ¡Entrena la vista!</p>
+      <p>Haz clic en el número correcto que ves en grande. ¡Entrena la vista! (0 a 5)</p>
 
       <div class="miniGrid" id="grid"></div>
 
-      <div class="footer">
-        Funciona offline en tu PC. Si quieres publicarlo, súbelo a GitHub Pages o a otra plataforma.
-      </div>
+      <div class="footer">Comparte y aprende jugando.</div>
     </aside>
   </div>
 
   <script>
+    // ====== CONFIG ======
+    const MIN_NUM = 0;
+    const MAX_NUM = 5;
+
     // ====== Estado ======
-    let maxNumber = 10;
-    let target = 5;
+    let maxNumber = MAX_NUM; // fijo 0..5
+    let target = 0;
     let stars = 0;
     let hits = 0;
     let tries = 0;
+    let playerName = "";
 
     const elTarget = document.getElementById("targetNumber");
     const elAnswer = document.getElementById("answer");
@@ -310,11 +344,25 @@
     const elHits = document.getElementById("hits");
     const elTries = document.getElementById("tries");
     const elGrid = document.getElementById("grid");
+    const elSubtitle = document.getElementById("subtitleText");
+
+    // Modal
+    const nameOverlay = document.getElementById("nameOverlay");
+    const nameInput = document.getElementById("nameInput");
+    const startBtn = document.getElementById("startBtn");
+    const skipBtn = document.getElementById("skipBtn");
 
     // ====== Utilidades ======
     function randInt(min, max){
-      // inclusivo
       return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function safeName(){
+      return (playerName && playerName.trim().length > 0) ? playerName.trim() : "campeón";
+    }
+
+    function setSubtitle(){
+      elSubtitle.textContent = `Mira el número, escríbelo y gana estrellas ⭐ (¡Tú puedes, ${safeName()}!)`;
     }
 
     function setTarget(n){
@@ -322,7 +370,7 @@
       elTarget.textContent = String(target);
       elAnswer.value = "";
       elAnswer.focus();
-      setMessage("Escribe el número que ves 👀", "neutral");
+      setMessage(`Escribe el número que ves 👀, ${safeName()}.`, "neutral");
       refreshGrid();
     }
 
@@ -340,9 +388,33 @@
     }
 
     function normalizeInput(v){
-      // Mantener solo dígitos
-      const onlyDigits = (v || "").replace(/[^\d]/g, "");
-      return onlyDigits;
+      // Mantener solo dígitos (0-9)
+      return (v || "").replace(/[^\d]/g, "");
+    }
+
+    // ====== Voz (opcional) ======
+    function speak(text){
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "es-ES";
+      u.rate = 0.95;
+      synth.cancel();
+      synth.speak(u);
+    }
+
+    function sayNumber(){
+      const synth = window.speechSynthesis;
+      if (!synth){
+        setMessage(`Tu navegador no soporta voz 🔇, ${safeName()}.`, "bad");
+        return;
+      }
+      const u = new SpeechSynthesisUtterance(String(target));
+      u.lang = "es-ES";
+      u.rate = 0.95;
+      synth.cancel();
+      synth.speak(u);
+      setMessage(`Escucha y escribe 👂✍️, ${safeName()}.`, "neutral");
     }
 
     // ====== Juego: escribir ======
@@ -351,73 +423,66 @@
       elAnswer.value = raw;
 
       if (raw === ""){
-        setMessage("Escribe un número 😊", "bad");
+        setMessage(`Escribe un número 😊, ${safeName()}.`, "bad");
+        speak(`Escribe un número, ${safeName()}`);
         return;
       }
 
       const guess = Number(raw);
+
+      // Solo permitimos 0..5
+      if (guess < MIN_NUM || guess > MAX_NUM){
+        tries++;
+        updateScore();
+        setMessage(`Recuerda ${safeName()}: solo de 0 a 5 😉`, "bad");
+        speak(`Recuerda ${safeName()}: solo de cero a cinco`);
+        return;
+      }
+
       tries++;
 
       if (guess === target){
         hits++;
         stars += 1;
-        setMessage(`¡Correcto! 🎉 Escribiste ${guess}.`, "good");
+        setMessage(`¡Muy bien, felicidades ${safeName()}! 🎉 Excelente, eres muy inteligente. ✅`, "good");
+        speak(`Muy bien ${safeName()}. Excelente. Esa es la respuesta correcta.`);
         popConfetti();
-        setTimeout(() => setTarget(randInt(0, maxNumber)), 700);
+        setTimeout(() => setTarget(randInt(MIN_NUM, maxNumber)), 700);
       } else {
-        setMessage(`Ups 😅 Tú escribiste ${guess}. Intenta otra vez.`, "bad");
+        setMessage(`Te equivocaste, ${safeName()}. 😅 Síguelo intentando.`, "bad");
+        speak(`Te equivocaste ${safeName()}. Síguelo intentando.`);
       }
       updateScore();
-    }
-
-    // ====== Voz (opcional) ======
-    function sayNumber(){
-      const synth = window.speechSynthesis;
-      if (!synth){
-        setMessage("Tu navegador no soporta voz 🔇", "bad");
-        return;
-      }
-      const u = new SpeechSynthesisUtterance(String(target));
-      u.lang = "es-ES";
-      u.rate = 0.95;
-      synth.cancel();
-      synth.speak(u);
-      setMessage("Escucha y escribe 👂✍️", "neutral");
     }
 
     // ====== Mini-juego: seleccionar ======
     function refreshGrid(){
       elGrid.innerHTML = "";
-      const set = new Set();
-      set.add(target);
 
-      while (set.size < 10){
-        set.add(randInt(0, maxNumber));
-      }
-
-      const nums = Array.from(set).sort(() => Math.random() - 0.5);
-
-      nums.forEach(n => {
+      // Siempre mostrar botones 0..5 (simple para niños)
+      for (let n = MIN_NUM; n <= MAX_NUM; n++){
         const b = document.createElement("button");
         b.className = "numBtn";
         b.textContent = String(n);
         b.addEventListener("click", () => {
+          tries += 1;
+
           if (n === target){
             stars += 1;
             hits += 1;
-            tries += 1;
             updateScore();
-            setMessage("¡Bien! ✅ Lo encontraste.", "good");
+            setMessage(`¡Excelente ${safeName()}! ✅ Esa es la correcta.`, "good");
+            speak(`Excelente ${safeName()}. Correcto.`);
             popConfetti();
-            setTimeout(() => setTarget(randInt(0, maxNumber)), 600);
+            setTimeout(() => setTarget(randInt(MIN_NUM, maxNumber)), 600);
           } else {
-            tries += 1;
             updateScore();
-            setMessage("Ese no 😄 ¡Busca el correcto!", "bad");
+            setMessage(`Ese no, ${safeName()} 😄 Intenta de nuevo.`, "bad");
+            speak(`Ese no, ${safeName()}. Intenta de nuevo.`);
           }
         });
         elGrid.appendChild(b);
-      });
+      }
     }
 
     // ====== Confetti simple ======
@@ -436,7 +501,6 @@
         p.style.width = "10px";
         p.style.height = "10px";
         p.style.borderRadius = "3px";
-        // colores random
         const colors = ["#ff5aa5","#00d4ff","#7c5cff","#22c55e","#ffd60a","#ff7a00"];
         p.style.background = colors[randInt(0, colors.length-1)];
         const angle = (Math.PI * 2) * (i / 18);
@@ -454,14 +518,43 @@
       setTimeout(() => burst.remove(), 600);
     }
 
+    // ====== Modal: nombre ======
+    function openNameModal(){
+      nameOverlay.style.display = "flex";
+      setTimeout(()=> nameInput.focus(), 50);
+    }
+
+    function closeNameModal(){
+      nameOverlay.style.display = "none";
+    }
+
+    function startWithName(name){
+      playerName = (name || "").trim();
+      // Guardar nombre (opcional)
+      closeNameModal();
+      setSubtitle();
+      setTarget(randInt(MIN_NUM, maxNumber));
+      setMessage(`¡Bienvenido ${safeName()}! 🎮`, "neutral");
+      speak(`Bienvenido ${safeName()}`);
+    }
+
+    startBtn.addEventListener("click", () => startWithName(nameInput.value));
+    skipBtn.addEventListener("click", () => startWithName(""));
+
+    nameInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") startWithName(nameInput.value);
+    });
+
     // ====== Eventos UI ======
     document.getElementById("checkBtn").addEventListener("click", checkAnswer);
-    document.getElementById("newBtn").addEventListener("click", () => setTarget(randInt(0, maxNumber)));
+    document.getElementById("newBtn").addEventListener("click", () => setTarget(randInt(MIN_NUM, maxNumber)));
     document.getElementById("sayBtn").addEventListener("click", sayNumber);
     document.getElementById("resetBtn").addEventListener("click", () => {
       stars = 0; hits = 0; tries = 0;
       updateScore();
-      setTarget(randInt(0, maxNumber));
+      setTarget(randInt(MIN_NUM, maxNumber));
+      setMessage(`Reiniciado ✅ ¡Sigamos, ${safeName()}!`, "neutral");
+      speak(`Reiniciado. Sigamos, ${safeName()}`);
     });
 
     // Enter para revisar
@@ -469,23 +562,18 @@
       if (e.key === "Enter") checkAnswer();
     });
 
-    // limpiar input a dígitos mientras escribe
+    // limpiar input a dígitos mientras escribe (máx 1 dígito)
     elAnswer.addEventListener("input", () => {
-      elAnswer.value = normalizeInput(elAnswer.value);
+      elAnswer.value = normalizeInput(elAnswer.value).slice(0,1);
     });
 
-    // Cambiar dificultad
-    document.querySelectorAll(".chip").forEach(chip => {
-      chip.addEventListener("click", () => {
-        maxNumber = Number(chip.dataset.max);
-        setMessage(`Nivel cambiado: 0–${maxNumber} 🎯`, "neutral");
-        setTarget(randInt(0, maxNumber));
-      });
-    });
-
-    // Init
+    // ====== Init ======
     updateScore();
-    setTarget(randInt(0, maxNumber));
+    maxNumber = MAX_NUM;
+
+    // Buscar nombre guardado
+    // Siempre pedir nombre al iniciar
+openNameModal();
   </script>
 </body>
 </html>
