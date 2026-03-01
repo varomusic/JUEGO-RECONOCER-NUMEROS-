@@ -266,7 +266,7 @@
   <!-- Modal para pedir nombre -->
   <div class="modalOverlay" id="nameOverlay" style="display:none;">
     <div class="modal" role="dialog" aria-modal="true" aria-label="Ingresar nombre">
-      <h2>👧🧒 ¡Hola!</h2>
+      <h2>👧🧒 ¡HOLA!</h2>
       <p>Escribe tu nombre para empezar a jugar con los números del <b>0 al 5</b>.</p>
       <div class="modalRow">
         <input id="nameInput" placeholder="Tu nombre..." maxlength="20" autocomplete="off" />
@@ -478,7 +478,7 @@
           } else {
             updateScore();
             setMessage(`Ese no, ${safeName()} 😄 Intenta de nuevo.`, "bad");
-            speak(`Ese no, ${safeName()}. Intenta de nuevo.`);
+            speak(`Ese no ${safeName()}. NO,NO,NO.`);
           }
         });
         elGrid.appendChild(b);
@@ -535,7 +535,7 @@
       setSubtitle();
       setTarget(randInt(MIN_NUM, maxNumber));
       setMessage(`¡Bienvenido ${safeName()}! 🎮`, "neutral");
-      speak(`Bienvenido ${safeName()}`);
+      speak(`Hola ${safeName()}`);
     }
 
     startBtn.addEventListener("click", () => startWithName(nameInput.value));
